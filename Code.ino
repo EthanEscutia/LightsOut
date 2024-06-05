@@ -3,14 +3,14 @@
 #include <Wire.h>
 #include <SPI.h>
 
-const byte badPin = 8;
-const byte Switch = 7;
+const byte switchPin = 7;
 bool newGame = true;
 bool danger;
-volatile bool off = analogRead(7);
+volatile bool off = digitalRead(7);
 int enemyCount = 1;
 int playerPosition = 0;
 int points = 0;
+int round = 1;
 int difficulty = 0;
 int enemyPositions[9] {-1, -1, -1, -1, -1, -1, -1, -1, -1};
 AsyncDelay delay_5s;
@@ -22,10 +22,10 @@ const uint8_t spSTART[] PROGMEM = {0x02,0xF8,0x49,0xCC,0x00,0xBF,0x87,0x3B,0xE0,
 void setup() {
   CircuitPlayground.begin();
   pinMode(LED_BUILTIN, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(Switch), turnOff, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(switchPin), turnOff, CHANGE);
   Serial.begin(9600);
   while(!Serial);
-  randomSeed(analogRead(badPin));
+  randomSeed(analogRead(8));
   Serial.println("Welcome to lights out beta!");
   Serial.println("You are the green dot, your objective is to avoid the red ones.");
   Serial.println("A yellow dot means both you and a red dot occupy the same space. Watch out!");
@@ -34,6 +34,8 @@ void setup() {
   Serial.println("The right button(D5) moves you clockwise");
   Serial.println("You get 5 ticks(5 seconds) before the lights are back on.");
   Serial.println("You gain 100 points each time you move and 1000 per round win!");
+  Serial.println("At the end of each round the number of enemies increases.");
+  Serial.println("Once the enemies have maxed out the difficulty will begin to increase, speeding up the game.");
   Serial.println("If you get caught in the same spot as a red YOU LOSE!!!");
 }
 
@@ -41,8 +43,11 @@ void loop()
 {
   if(newGame)
   {
-    Serial.println("Press and hold both buttons to play!");
     while(off)
+    {
+      delay(1);
+    }
+    Serial.println("Press and hold both buttons to play!");
     while (!(digitalRead(4) && digitalRead(5)))
     {
       CircuitPlayground.setPixelColor(2, 13, 0, 0);
@@ -53,11 +58,32 @@ void loop()
     }
     CircuitPlayground.speaker.say(spLEVEL);
     CircuitPlayground.speaker.say(spSTART);
+    delay(500);
     newGame = false;
   }
-  for (int i = 0; i < enemyCount; i++)
+  Serial.print("Round: ");
+  Serial.print(round);
+  Serial.print(" Difficulty: ");
+  Serial.println(difficulty);
+  if (enemyCount < 9)
   {
-    enemyPositions[i] = random(10);
+    for (int i = 0; i < enemyCount; i++)
+    {
+      enemyPositions[i] = random(10);
+    }
+  }
+  else
+  {
+    int x = random(10);
+    for (int i = 0; i < enemyCount; i++)
+    {
+      enemyPositions[i] = x;
+      x++;
+      if (x > 9)
+      {
+        x = 0;
+      }
+    }
   }
   for (int i : enemyPositions)
   {
@@ -86,13 +112,13 @@ void loop()
     }
     delay(500 - 50 * difficulty);
     CircuitPlayground.playTone(220, 100 - 10 * difficulty, false);
-    delay(500 - 50 * difficulty);
     CircuitPlayground.clearPixels();
+    delay(500 - 50 * difficulty);
   }
   danger = false;
   delay_5s.start(5000 - 500 * difficulty, AsyncDelay::MILLIS);
   delay_1s.start(1000 - 100 * difficulty, AsyncDelay::MILLIS);
-  while(!(delay_5s.isExpired()))
+  while(!(delay_5s.isExpired()) && !off)
   {
     if (digitalRead(4) && !off)
     {
@@ -138,6 +164,7 @@ void loop()
   if (danger || off)
   {
     points = 0;
+    round = 1;
     enemyCount = 1;
     newGame = true;
     for (int i : enemyPositions)
@@ -149,20 +176,22 @@ void loop()
       enemyPositions[i] = -1;
     }
     CircuitPlayground.setPixelColor(playerPosition, 13, 13, 0);
-    CircuitPlayground.playTone(110, 250 - 25 * difficulty);
+    CircuitPlayground.playTone(110, 250);
     CircuitPlayground.setPixelColor(playerPosition, 0, 0, 0);
     delay(250);
     CircuitPlayground.setPixelColor(playerPosition, 13, 13, 0);
-    CircuitPlayground.playTone(110, 250 - 25 * difficulty);
+    CircuitPlayground.playTone(110, 250);
     CircuitPlayground.setPixelColor(playerPosition, 0, 0, 0);
     delay(250);
     CircuitPlayground.setPixelColor(playerPosition, 13, 13, 0);
-    CircuitPlayground.playTone(110, 250 - 25 * difficulty);
+    CircuitPlayground.playTone(110, 250);
     CircuitPlayground.setPixelColor(playerPosition, 0, 0, 0);
     delay(250);
+    difficulty = 0;
     Serial.println("GAME OVER!");
     CircuitPlayground.speaker.say(spLEVEL);
     CircuitPlayground.speaker.say(spOVER);
+    delay(100);
   }
   else
   {
@@ -182,15 +211,16 @@ void loop()
     {
       enemyCount++;
     }
-    else
+    else if (difficulty < 7)
     {
       difficulty++;
     }
+    round++;
   }
   danger = false;
   CircuitPlayground.clearPixels();
 }
 void turnOff()
 {
-  off = analogRead(7);
+  off = digitalRead(7);
 }
