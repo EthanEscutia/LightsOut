@@ -42,7 +42,8 @@ void loop()
   if(newGame)
   {
     Serial.println("Press and hold both buttons to play!");
-    while (!(digitalRead(4) && digitalRead(5)) && off)
+    while(off)
+    while (!(digitalRead(4) && digitalRead(5)))
     {
       CircuitPlayground.setPixelColor(2, 13, 0, 0);
       CircuitPlayground.setPixelColor(7, 13, 0, 0);
