@@ -10,7 +10,7 @@ volatile bool off = digitalRead(7);
 int enemyCount = 1;
 int playerPosition = 0;
 int points = 0;
-int round = 1;
+int game = 1;
 int difficulty = 0;
 int enemyPositions[9] {-1, -1, -1, -1, -1, -1, -1, -1, -1};
 AsyncDelay delay_5s;
@@ -62,7 +62,7 @@ void loop()
     newGame = false;
   }
   Serial.print("Round: ");
-  Serial.print(round);
+  Serial.print(game);
   Serial.print(" Difficulty: ");
   Serial.println(difficulty);
   if (enemyCount < 9)
@@ -164,7 +164,7 @@ void loop()
   if (danger || off)
   {
     points = 0;
-    round = 1;
+    game = 1;
     enemyCount = 1;
     newGame = true;
     for (int i : enemyPositions)
@@ -215,7 +215,7 @@ void loop()
     {
       difficulty++;
     }
-    round++;
+    game++;
   }
   danger = false;
   CircuitPlayground.clearPixels();
