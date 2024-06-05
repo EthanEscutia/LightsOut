@@ -59,15 +59,15 @@ void loop()
   {
     enemyPositions[i] = random(10);
   }
+  for (int i : enemyPositions)
+  {
+    if (playerPosition == i)
+    {
+      danger = true;
+    }
+  }
   for (int i = 0; i < 4; i++)
   {
-    for (int i : enemyPositions)
-    {
-      if (playerPosition == i)
-      {
-        danger = true;
-      }
-    }
     if (danger)
     {
       for (int i : enemyPositions)
