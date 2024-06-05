@@ -5,5 +5,5 @@ To start the game hold both buttons while 2 LEDs are flashing red until you hear
 At the start of each round all enemies are randomly placed on one of the ten neopixels (0-9) then you are shown the positions of each one and yourslef.
 To play use the buttons after the three ticks to move. The left button(D4) moves you counter clockwise. The right button(D5) moves you clockwise. You get 5 beeps (5 seconds) before the lights are back on.
 You gain 100 points each time you move and 1000 per round win!
-Each round gets progressively harder, at first only enemies increase but after there are 9 the game moves faster and faster ut to a difficulty of 7, which is 5 times faster!
+Each round gets progressively harder, at first only enemies increase but after there are 9 the game moves faster and faster up to a difficulty of 7, which is 5 times faster!
 If you get caught in the same spot as a red YOU LOSE!!!
