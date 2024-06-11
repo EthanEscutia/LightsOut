@@ -28,7 +28,7 @@ void setup() {
     delay(1);
   }
   randomSeed(analogRead(9));
-  Serial.println("Welcome to lights out beta!");
+  Serial.println("Welcome to lights out!");
   Serial.println("You are the green dot, your objective is to avoid the red ones.");
   Serial.println("A yellow dot means both you and a red dot occupy the same space. Watch out!");
   Serial.println("To play use the buttons after the three ticks to move.");
