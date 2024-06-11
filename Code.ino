@@ -39,6 +39,7 @@ void setup() {
   Serial.println("At the end of each round the number of enemies increases.");
   Serial.println("Once the enemies have maxed out the difficulty will begin to increase, speeding up the game.");
   Serial.println("If you get caught in the same spot as a red YOU LOSE!!!");
+  Serial.println("As an added challege if you flip the switch before starting the game you can activate hard mode.\nHard mode increases the enemies and difficulty at the start, and alters the way each light is displayed.\nEach light is displayed one at a time and only once requiring more and quick memorization.");
 }
 
 void loop()
