@@ -6,11 +6,11 @@
 const byte switchPin = 7;
 bool newGame = true;
 bool danger;
-volatile bool off = digitalRead(7);
+volatile bool hardMode = digitalRead(7);
 int enemyCount = 1;
 int playerPosition = 0;
 int points = 0;
-int game = 1;
+int level = 1;
 int difficulty = 0;
 int enemyPositions[9] {-1, -1, -1, -1, -1, -1, -1, -1, -1};
 AsyncDelay delay_5s;
@@ -22,10 +22,12 @@ const uint8_t spSTART[] PROGMEM = {0x02,0xF8,0x49,0xCC,0x00,0xBF,0x87,0x3B,0xE0,
 void setup() {
   CircuitPlayground.begin();
   pinMode(LED_BUILTIN, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(switchPin), turnOff, CHANGE);
   Serial.begin(9600);
-  while(!Serial);
-  randomSeed(analogRead(8));
+  while(!Serial)
+  {
+    delay(1);
+  }
+  randomSeed(analogRead(9));
   Serial.println("Welcome to lights out beta!");
   Serial.println("You are the green dot, your objective is to avoid the red ones.");
   Serial.println("A yellow dot means both you and a red dot occupy the same space. Watch out!");
@@ -43,18 +45,26 @@ void loop()
 {
   if(newGame)
   {
-    while(off)
-    {
-      delay(1);
-    }
     Serial.println("Press and hold both buttons to play!");
     while (!(digitalRead(4) && digitalRead(5)))
     {
+      hardMode = digitalRead(7);
+      if (hardMode)
+      {
+        enemyCount = 5;
+        difficulty = 4;
+      }
+      else
+      {
+        enemyCount = 1;
+        difficulty = 0;
+      }
       CircuitPlayground.setPixelColor(2, 13, 0, 0);
       CircuitPlayground.setPixelColor(7, 13, 0, 0);
       delay(250 - 25 * difficulty);
       CircuitPlayground.clearPixels();
       delay(250 - 25 * difficulty);
+      level = 1;
     }
     CircuitPlayground.speaker.say(spLEVEL);
     CircuitPlayground.speaker.say(spSTART);
@@ -62,7 +72,7 @@ void loop()
     newGame = false;
   }
   Serial.print("Round: ");
-  Serial.print(game);
+  Serial.print(level);
   Serial.print(" Difficulty: ");
   Serial.println(difficulty);
   if (enemyCount < 9)
@@ -92,35 +102,70 @@ void loop()
       danger = true;
     }
   }
-  for (int i = 0; i < 4; i++)
+  if (hardMode)
   {
     if (danger)
     {
-      for (int i : enemyPositions)
-      {
-        CircuitPlayground.setPixelColor(i, 13, 0, 0);
-      }
       CircuitPlayground.setPixelColor(playerPosition, 13, 13, 0);
     }
     else
     {
+      CircuitPlayground.setPixelColor(playerPosition, 0, 13, 0);
+    }
+    CircuitPlayground.playTone(220, 100 - 10 * difficulty, false);
+    delay(500 - 50 * difficulty);
+    CircuitPlayground.setPixelColor(playerPosition, 0, 0, 0);
+    for (int i : enemyPositions)
+    {
+      if (i != -1)
+      {
+        if (i == playerPosition)
+        {
+          CircuitPlayground.setPixelColor(i, 13, 13, 0);
+        }
+        else
+        {
+          CircuitPlayground.setPixelColor(i, 13, 0, 0);
+        }
+        CircuitPlayground.playTone(220, 100 - 10 * difficulty, false);
+        delay(500 - 50 * difficulty);
+        CircuitPlayground.setPixelColor(i, 0, 0, 0);
+      }
+    }
+  }
+  else
+  {
+    for (int i = 0; i < 4; i++)
+    {
       for (int i : enemyPositions)
       {
         CircuitPlayground.setPixelColor(i, 13, 0, 0);
       }
-      CircuitPlayground.setPixelColor(playerPosition, 0, 13, 0);
+      if (danger)
+      {
+        CircuitPlayground.setPixelColor(playerPosition, 13, 13, 0);
+      }
+      else
+      {
+        for (int i : enemyPositions)
+        {
+          CircuitPlayground.setPixelColor(i, 13, 0, 0);
+        }
+        CircuitPlayground.setPixelColor(playerPosition, 0, 13, 0);
+      }
+      delay(500 - 50 * difficulty);
+      CircuitPlayground.playTone(220, 100 - 10 * difficulty, false);
+      CircuitPlayground.clearPixels();
+      delay(500 - 50 * difficulty);
     }
-    delay(500 - 50 * difficulty);
-    CircuitPlayground.playTone(220, 100 - 10 * difficulty, false);
-    CircuitPlayground.clearPixels();
-    delay(500 - 50 * difficulty);
   }
+  CircuitPlayground.playTone(330, 100 - 10 * difficulty, false);
   danger = false;
   delay_5s.start(5000 - 500 * difficulty, AsyncDelay::MILLIS);
   delay_1s.start(1000 - 100 * difficulty, AsyncDelay::MILLIS);
-  while(!(delay_5s.isExpired()) && !off)
+  while(!(delay_5s.isExpired()))
   {
-    if (digitalRead(4) && !off)
+    if (digitalRead(4))
     {
       digitalWrite(LED_BUILTIN, HIGH);
       playerPosition++;
@@ -134,7 +179,7 @@ void loop()
       delay(200);
       digitalWrite(LED_BUILTIN, LOW);
     }
-    else if (digitalRead(5) && !off)
+    else if (digitalRead(5))
     {
       digitalWrite(LED_BUILTIN, HIGH);
       playerPosition--;
@@ -161,10 +206,10 @@ void loop()
       danger = true;
     }
   }
-  if (danger || off)
+  if (danger)
   {
     points = 0;
-    game = 1;
+    level = 1;
     enemyCount = 1;
     newGame = true;
     for (int i : enemyPositions)
@@ -196,6 +241,10 @@ void loop()
   else
   {
     points += 1000;
+    if (hardMode)
+    {
+      points += 4000;
+    }
     for (int i : enemyPositions)
     {
       CircuitPlayground.setPixelColor(i, 13, 0, 0);
@@ -215,12 +264,7 @@ void loop()
     {
       difficulty++;
     }
-    game++;
+    level++;
   }
   danger = false;
   CircuitPlayground.clearPixels();
-}
-void turnOff()
-{
-  off = digitalRead(7);
-}
