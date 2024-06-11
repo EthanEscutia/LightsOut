@@ -175,8 +175,6 @@ void loop()
         playerPosition = 0;
       }
       points += 100;
-      Serial.print("Player moved to position ");
-      Serial.println(playerPosition);
       delay(200);
       digitalWrite(LED_BUILTIN, LOW);
     }
@@ -189,8 +187,6 @@ void loop()
         playerPosition = 9;
       }
       points += 100;
-      Serial.print("Player moved to position ");
-      Serial.println(playerPosition);
       delay(200);
       digitalWrite(LED_BUILTIN, LOW);
     }
