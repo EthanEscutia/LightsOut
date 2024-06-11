@@ -7,3 +7,6 @@ To play use the buttons after the three ticks to move. The left button(D4) moves
 You gain 100 points each time you move and 1000 per round win!
 Each round gets progressively harder, at first only enemies increase but after there are 9 the game moves faster and faster up to a difficulty of 7, which is 5 times faster!
 If you get caught in the same spot as a red YOU LOSE!!!
+As an added challege if you flip the switch before starting the game you can activate hard mode.
+Hard mode increases the enemies and difficulty at the start, and alters the way each light is displayed.
+Each light is displayed one at a time and only once requiring more and quick memorization.
